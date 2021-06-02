@@ -18,13 +18,16 @@ making wide adoption of E-Commerce by the Aruban people much more likely, as cre
 
 ## Usage
 
-Every time you run this script you'll need to generate a new password with the ***New** Aruba Bank App.
+Every time you run this script you'll need to generate a new password with the ***New** Aruba Bank Mobile App.
 
-    python3 -m arubabank -u jcroes -p 123456 -o csv # login and retrieve first 50 transactions of default portfolio and dump it into a csv file
+    # login and retrieve first 50 transactions of default portfolio and dump it into a csv file
+    python3 -m arubabank -u jcroes -p 123456 -o csv
 
-    python3 -m arubabank -u bwerleman -p 321654 -o json # login and retrieve first 50 transactions of default portfolio and dump it into a json file
+    # login and retrieve first 50 transactions of default portfolio and dump it into a json file
+    python3 -m arubabank -u bwerleman -p 321654 -o json
 
-    python3 -m arubabank -u eodor -p 124578 -o csv -b 9876540190 # login and retrieve first 50 transactions of bank account 9876540190 and dump it into a csv file
+    # login and retrieve first 50 transactions of bank account 9876540190 and dump it into a csv file
+    python3 -m arubabank -u eodor -p 124578 -o csv -b 9876540190
 
 --more examples coming soon--
 
