@@ -7,8 +7,8 @@ import csv
 parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--username", metavar='', type=str, help="Your username", required=True)
 parser.add_argument("-p", "--password", metavar='', type=str, help="Your password", required=True)
-parser.add_argument("-o", "--output", metavar='', type=str, help="Set output file (json or csv)", choices=['json', 'csv'], required=True)
-parser.add_argument("-b", "--bankaccount", metavar='', type=str, help="Bank Account Number", required=False)
+parser.add_argument("-o", "--output", metavar='', type=str, help="Set output format (json or csv)", choices=['json', 'csv'], required=True)
+parser.add_argument("-b", "--bankaccount", metavar='', type=str, help="Your Bank Account Number (optional)", required=False)
 args = parser.parse_args()
 
 
