@@ -20,11 +20,11 @@ making wide adoption of E-Commerce by the Aruban people much more likely, as cre
 
 Every time you run this script you'll need to generate a new password with the ***New** Aruba Bank App.
 
-    python3 -m arubabank -u <username> -p <password> # Use the mobile app to generate your password
+    python3 -m arubabank -u jcroes -p 123456 -o csv # login and retrieve first 50 transactions of default portfolio and dump it into a csv file
 
-    python3 -m arubabank -u jcroes -p 123456 # login and retrieve first 50 transactions of default profile
+    python3 -m arubabank -u bwerleman -p 321654 -o json # login and retrieve first 50 transactions of default portfolio and dump it into a json file
 
-    python3 -m arubabank -u jcroes -p 123456 -o csv # login and retrieve first 50 transactions of default profile and dump it into a csv file
+    python3 -m arubabank -u eodor -p 124578 -o csv -b 9876540190 # login and retrieve first 50 transactions of bank account 9876540190 and dump it into a csv file
 
 --more examples coming soon--
 
@@ -42,7 +42,7 @@ Run the following commands to set up a new virtualenv and run the Aruba Bank API
     python3 -m venv venv                             # create a new virtual environment in the directory 'venv'
     . venv/bin/activate                              # activate this environment
     ./setup.py install                               # install all dependencies
-    python3 -m arubabank -u <username> -p <password> # Use the mobile app to generate your password
+    python3 -m arubabank -u <username> -p <password> -o json # Use the mobile app to generate your password
 
 
 ## Disclaimer
@@ -52,4 +52,4 @@ This is just a personal project that I decided to share and see what the demand 
 ## To Do List
 
 - Recruit more local developers to the project
-- Maybe develop it into a rest api with Django ?
+- Maybe develop it into a rest api ?
