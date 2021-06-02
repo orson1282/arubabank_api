@@ -28,8 +28,8 @@ class ArubaBankAPI:
     def login(self, username, password):
         """
         Function to log the user in.
-        Get the __RequestVerificationToken from the main website
-        Not the most elegant way to do this. Better way needed
+        Gets the __RequestVerificationToken from the main website with BeautifulSoup
+        and adds it to the the headers. Maybe this can be improved.
         """
         headers = self.headers
         response = self.session.get(self.get_url())
@@ -41,7 +41,7 @@ class ArubaBankAPI:
 
         # Add the __RequestVerificationToken to the headers to login
         headers['__RequestVerificationToken'] = request_verification_token
-        login_payload = {'username':username,'tokentype':'softToken','password':password}
+        login_payload = {'username':username,'tokentype':'softToken','password':password} # create the login payload.
         login_response = self.session.post(self.get_url('api/v2/account/login'), headers=headers, data=login_payload)
         return login_response
 
@@ -49,7 +49,7 @@ class ArubaBankAPI:
 
     def get_portfolios(self):
         """
-        Get all portfolios
+        Returns all user portfolios
         """
         response = self.session.get(self.get_url('api/v2/general/portfolio'))
         
@@ -57,9 +57,33 @@ class ArubaBankAPI:
         return data
 
 
-    def transaction_accounts(self):
+    def get_account_overview(self):
         """
-        Get transaction accounts of default portfolio
+        Returns the accounts of the selected portfolio
+        """
+        response = self.session.get(self.get_url('api/v2/JSSTBAccounts/getaccountoverview'))
+        data = json.loads(response.content.decode('utf-8'))
+        return data
+
+
+    def get_account_id(self, bank_account_number=None):
+        """
+        The account_number used for the various API endpoints is different than the actual bank account number
+        This returns the api account_number, if the account argument is specified otherwise it
+        returns the first account_number from the default portfolio
+        """
+        if not bank_account_number:
+            account_number = self.get_transaction_accounts()[0]['accountNumber'] # selects the first account from the default portfolio
+        else:
+            for account in self.get_account_overview()['portfolios'][0]['products']:
+                if account['accountNumber'] == bank_account_number: # selects the account_number that matches the account argument
+                    account_number = account['accountId']
+        return account_number
+
+    
+    def get_transaction_accounts(self):
+        """
+        Returns all transaction accounts of the selected portfolio
         """
         response = self.session.get(self.get_url('api/v2/transactionaccount/get'))
         
@@ -67,13 +91,45 @@ class ArubaBankAPI:
         return data
 
 
-    def transactions_overview(self, account_number):
+    def get_transactions(self, account_number, clean=None):
         """
-        Get transaction details of a specific account
+        Returns the first 50 transaction details of a specific account
         """
-        response = self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_number}&pageNumber=1'))
+        if not clean:
+            response = self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_number}&pageNumber=1'))
+            data = json.loads(response.content.decode('utf-8'))['items']
+        else:
+            response = self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_number}&pageNumber=1'))
+            data = json.loads(response.content.decode('utf-8'))['items']
+
+            for transaction in data:
+                transaction['description'] = transaction['description'].replace('\n', '') # Remove the \n from the descriptions
+                transaction['transactionDate'] = transaction['transactionDate'].split('T', 1)[0] # Remove the time from the transactionDate
+                transaction['amount'] = transaction['amountCurrency']['amount'] # Split the amountCurrency dictionary
+                transaction['amountCurrencyCode'] = transaction['amountCurrency']['currencyCode'] # Split the amountCurrency dictionary
+                transaction.pop('amountCurrency', None)
+                transaction['balance'] = transaction['balanceCurrency']['amount'] # Split the balanceCurrency dictionary
+                transaction['balanceCurrencyCode'] = transaction['balanceCurrency']['currencyCode'] # Split the balanceCurrency dictionary
+                transaction.pop('balanceCurrency', None)
+            new_transactions = []
+            for transaction in data:
+                new = {}
+                new["transactionDate"] = transaction['transactionDate']
+                new["transactionCode"] = transaction['transactionCode']
+                new["description"] = transaction['description']
+                new["amount"] = transaction['amount']
+                new["amountCurrencyCode"] = transaction['amountCurrencyCode']
+                new["balance"] = transaction['balance']
+                new["balanceCurrencyCode"] = transaction['balanceCurrencyCode']
+                new["isDebit"] = transaction['isDebit']
+                new["beneficiaryName"] = transaction['beneficiaryName']
+                new["referenceNumber"] = transaction['referenceNumber']
+                new["bankMateReferenceNumber"] = transaction['bankMateReferenceNumber']
+                new["transactionDetailRefId"] = transaction['transactionDetailRefId']
+                new["isRecreatable"] = transaction['isRecreatable']
+                new_transactions.append(new)
+            data = new_transactions
         
-        data = json.loads(response.content.decode('utf-8'))
         return data
 
 
