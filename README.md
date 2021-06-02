@@ -55,4 +55,5 @@ This is just a personal project that I decided to share and see what the demand 
 ## To Do List
 
 - Recruit more local developers to the project
-- Maybe develop it into a rest api ?
+- Get transactions based on date range
+- Get transactions of accounts located in other portfolios
