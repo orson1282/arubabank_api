@@ -32,3 +32,4 @@ development.py
 sample_data.json
 *.csv
 *.json
+old.py
