@@ -1,7 +1,8 @@
 ## Aruba Bank API Client
 
 This is a Python script that logs in to https://onlinebank.arubabank.com/ and retrieves your data.
-__*It's still in early development*__. At the moment it can login and retrieve the first 50 transactions of any bank account within your default portfolio and save this to a json or csv file. You will need to have an existing account with Aruba Bank, and have signed up for the ***New** Aruba Bank App as you need the App to generate your password.
+__*It's still in early development*__. At the moment it can login and retrieve transactions of any bank account within your default portfolio and save this to a json or csv file. You will need to have an existing account with Aruba Bank, and have signed up for the ***New** Aruba Bank App as you need the App to generate your password.
+
 
 ### Developers Wanted: If you're a developer located in Aruba and would like to contribute please contact me.
 
@@ -9,7 +10,7 @@ __*It's still in early development*__. At the moment it can login and retrieve t
 ## Use Cases
 
 Some of the use cases:
-- Automate the reconcilation process with existing accounting packages drastically improving effeciency.
+- Automate booking bank transactions into existing accounting programs (ex. QuickBooks) to improve effeciency and reduce human error.
 - Aid in developing financial apps to track expenses and help with budgeting
 - Find a way to facilitate E-Commerce on the island. With an API, bank transfers can be confirmed without user intervention.
 Businesses can then choose to use bank transfers as a payment method on their websites,
@@ -20,14 +21,14 @@ making wide adoption of E-Commerce by the Aruban people much more likely, as cre
 
 Every time you run this script you'll need to generate a new password with the ***New** Aruba Bank Mobile App.
 
-    # login and retrieve first 50 transactions of default portfolio and dump it into a csv file
-    python3 -m arubabank -u jcroes -p 123456 -o csv
+    # retreive all transactions between May 1 and May 31 from bank account number 9876540190
+    # from the default portfolio
 
-    # login and retrieve first 50 transactions of default portfolio and dump it into a json file
-    python3 -m arubabank -u bwerleman -p 321654 -o json
+    python3 -m arubabank -u jcroes -p 123456 -o csv -b 9876540190 -f 2021-05-01 -t 2021-05-31
 
-    # login and retrieve first 50 transactions of bank account 9876540190 and dump it into a csv file
-    python3 -m arubabank -u eodor -p 124578 -o csv -b 9876540190
+The module with command line arguments is just to show how the api functions, ideally you would just import the module into your own application using:
+
+    from arubabank import ArubaBankAPI
 
 --more examples coming soon--
 
