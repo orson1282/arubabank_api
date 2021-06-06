@@ -9,6 +9,8 @@ parser.add_argument("-u", "--username", metavar='', type=str, help="Your usernam
 parser.add_argument("-p", "--password", metavar='', type=str, help="Your password", required=True)
 parser.add_argument("-o", "--output", metavar='', type=str, help="Set output format (json or csv)", choices=['json', 'csv'], required=True)
 parser.add_argument("-b", "--bankaccount", metavar='', type=str, help="Your Bank Account Number (optional)", required=False)
+parser.add_argument("-f", "--fromdate", metavar='', type=str, help="From Date", required=True)
+parser.add_argument("-t", "--todate", metavar='', type=str, help="To Date", required=True)
 args = parser.parse_args()
 
 
@@ -16,8 +18,8 @@ api = ArubaBankAPI()
 login = api.login(args.username, args.password)
 
 
-account_number = api.get_account_id(args.bankaccount) # returns the account_number used for api endpoints based on bank account number
-transactions = api.get_transactions(account_number, clean=True) # returns the transactions in a clean format for json or csv
+account_id = api.get_account_id(args.bankaccount) # returns the account_id used for api endpoints based on bank account number
+transactions = api.get_transactions(account_id, from_date=args.fromdate, to_date=args.todate) # returns the transactions in a clean format for json or csv processing
 
 
 # Write transactions to JSON File
