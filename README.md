@@ -10,7 +10,7 @@ __*It's still in early development*__. At the moment it can login and retrieve t
 ## Use Cases
 
 Some of the use cases:
-- Automate booking bank transactions into existing accounting programs (ex. QuickBooks) to improve effeciency and reduce human error.
+- Automate booking bank transactions into existing accounting programs (ex. QuickBooks) to improve efficiency and reduce human error.
 - Aid in developing financial apps to track expenses and help with budgeting
 - Find a way to facilitate E-Commerce on the island. With an API, bank transfers can be confirmed without user intervention.
 Businesses can then choose to use bank transfers as a payment method on their websites,
