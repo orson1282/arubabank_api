@@ -4,6 +4,7 @@ name = "arubabankAPI"
 import requests
 from bs4 import BeautifulSoup as bs
 import json
+from datetime import datetime as dt
 
 
 class ArubaBankAPI:
@@ -91,46 +92,66 @@ class ArubaBankAPI:
         return data
 
 
-    def get_transactions(self, account_number, clean=None):
+    def get_transactions(self, account_id, from_date, to_date=dt.now()):
         """
-        Returns the first 50 transaction details of a specific account
+        Returns the transaction details of a specific account between a specific date range
+        if to_date is not specified today's date is used
         """
-        if not clean:
-            response = self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_number}&pageNumber=1'))
-            data = json.loads(response.content.decode('utf-8'))['items']
-        else:
-            response = self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_number}&pageNumber=1'))
-            data = json.loads(response.content.decode('utf-8'))['items']
-
-            for transaction in data:
-                transaction['description'] = transaction['description'].replace('\n', '') # Remove the \n from the descriptions
-                transaction['transactionDate'] = transaction['transactionDate'].split('T', 1)[0] # Remove the time from the transactionDate
-                transaction['amount'] = transaction['amountCurrency']['amount'] # Split the amountCurrency dictionary
-                transaction['amountCurrencyCode'] = transaction['amountCurrency']['currencyCode'] # Split the amountCurrency dictionary
-                transaction.pop('amountCurrency', None)
-                transaction['balance'] = transaction['balanceCurrency']['amount'] # Split the balanceCurrency dictionary
-                transaction['balanceCurrencyCode'] = transaction['balanceCurrency']['currencyCode'] # Split the balanceCurrency dictionary
-                transaction.pop('balanceCurrency', None)
-            new_transactions = []
-            for transaction in data:
-                new = {}
-                new["transactionDate"] = transaction['transactionDate']
-                new["transactionCode"] = transaction['transactionCode']
-                new["description"] = transaction['description']
-                new["amount"] = transaction['amount']
-                new["amountCurrencyCode"] = transaction['amountCurrencyCode']
-                new["balance"] = transaction['balance']
-                new["balanceCurrencyCode"] = transaction['balanceCurrencyCode']
-                new["isDebit"] = transaction['isDebit']
-                new["beneficiaryName"] = transaction['beneficiaryName']
-                new["referenceNumber"] = transaction['referenceNumber']
-                new["bankMateReferenceNumber"] = transaction['bankMateReferenceNumber']
-                new["transactionDetailRefId"] = transaction['transactionDetailRefId']
-                new["isRecreatable"] = transaction['isRecreatable']
-                new_transactions.append(new)
-            data = new_transactions
+        # Convert from_date to datetime object
+        from_date = dt.strptime(from_date, "%Y-%m-%d")
         
-        return data
+        # Convert to_date to datetime object if it is passed in, if not leave it as is
+        if isinstance(to_date, str):
+            to_date = dt.strptime(to_date, "%Y-%m-%d")
+
+        # Get total pages of all transactions
+        total_pages = json.loads(self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber=1')).content.decode('utf-8'))['totalPages']
+
+        filtered_data = []
+        for page_number in range(1, total_pages + 1):
+            response = self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber={page_number}'))
+            data = json.loads(response.content.decode('utf-8'))['items']
+            
+            first_date = dt.strptime((data[0]['transactionDate'].split('T', 1)[0]), "%Y-%m-%d") # Get first date on transactions page
+
+            if first_date >= from_date:
+                for transaction in data:
+                    transaction_date = dt.strptime(transaction['transactionDate'].split('T', 1)[0], "%Y-%m-%d")
+                    if to_date >= transaction_date >= from_date:
+                        transaction['transactionDate'] = transaction['transactionDate'].split('T', 1)[0] # Remove the time from the transactionDate
+                        transaction['description'] = transaction['description'].replace('\n', '') # Remove the \n from the descriptions
+                        transaction['amount'] = transaction['amountCurrency']['amount'] # Split the amountCurrency dictionary
+                        transaction['amountCurrencyCode'] = transaction['amountCurrency']['currencyCode'] # Split the amountCurrency dictionary
+                        transaction.pop('amountCurrency', None)
+                        transaction['balance'] = transaction['balanceCurrency']['amount'] # Split the balanceCurrency dictionary
+                        transaction['balanceCurrencyCode'] = transaction['balanceCurrency']['currencyCode'] # Split the balanceCurrency dictionary
+                        transaction.pop('balanceCurrency', None)
+                        filtered_data.append(transaction)
+                    else:
+                        continue
+            elif first_date < from_date:
+                break
+
+
+        reordered_data = []
+        for transaction in filtered_data:
+            dict = {}
+            dict["transactionDate"] = transaction['transactionDate']
+            dict["transactionCode"] = transaction['transactionCode']
+            dict["description"] = transaction['description']
+            dict["amount"] = transaction['amount']
+            dict["amountCurrencyCode"] = transaction['amountCurrencyCode']
+            dict["balance"] = transaction['balance']
+            dict["balanceCurrencyCode"] = transaction['balanceCurrencyCode']
+            dict["isDebit"] = transaction['isDebit']
+            dict["beneficiaryName"] = transaction['beneficiaryName']
+            dict["referenceNumber"] = transaction['referenceNumber']
+            dict["bankMateReferenceNumber"] = transaction['bankMateReferenceNumber']
+            dict["transactionDetailRefId"] = transaction['transactionDetailRefId']
+            dict["isRecreatable"] = transaction['isRecreatable']
+            reordered_data.append(dict)
+        
+        return reordered_data
 
 
     def refresh_session(self):
