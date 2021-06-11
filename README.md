@@ -4,7 +4,8 @@ This is a Python script that logs in to https://onlinebank.arubabank.com/ and re
 __*It's still in early development*__. At the moment it can login and retrieve transactions of any bank account within your default portfolio and save this to a json or csv file. You will need to have an existing account with Aruba Bank, and have signed up for the ***New** Aruba Bank App as you need the App to generate your password.
 
 
-### Developers Wanted: If you're a developer located in Aruba and would like to contribute please contact me.
+#### Developers Wanted: If you're a developer located in Aruba and would like to contribute please contact me.
+<a href="https://www.twitter.com/orson_297" target="_blank"><img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg" alt="orson_297" height="30" width="40"></a>
 
 
 ## Use Cases
