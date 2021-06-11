@@ -33,3 +33,4 @@ sample_data.json
 *.csv
 *.json
 old.py
+*.ipynb
