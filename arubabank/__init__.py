@@ -53,7 +53,7 @@ class ArubaBankAPI:
         Returns all user portfolios
         """
         response = self.session.get(self.get_url('api/v2/general/portfolio'))
-        
+
         data = json.loads(response.content.decode('utf-8'))
         return data
 
@@ -81,43 +81,51 @@ class ArubaBankAPI:
                     account_number = account['accountId']
         return account_number
 
-    
+
     def get_transaction_accounts(self):
         """
         Returns all transaction accounts of the selected portfolio
         """
         response = self.session.get(self.get_url('api/v2/transactionaccount/get'))
-        
+
         data = json.loads(response.content.decode('utf-8'))
         return data
 
 
-    def get_transactions(self, account_id, from_date, to_date=dt.now()):
+    def get_transactions(self, account_id, from_date, to_date):
         """
         Returns the transaction details of a specific account between a specific date range
         if to_date is not specified today's date is used
         """
         # Convert from_date to datetime object
         from_date = dt.strptime(from_date, "%Y-%m-%d")
-        
+
         # Convert to_date to datetime object if it is passed in, if not leave it as is
         if isinstance(to_date, str):
             to_date = dt.strptime(to_date, "%Y-%m-%d")
+        else:
+            # somehow API is set to UTC and not AST
+            to_date = dt.utcnow()
 
         # Get total pages of all transactions
-        total_pages = json.loads(self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber=1')).content.decode('utf-8'))['totalPages']
+        url = self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber=1')
+        # https://stackoverflow.com/a/53899577/861597
+        now = {'Cache-Control': 'no-cache'}
+        total_pages = json.loads(self.session.get(url, headers=now).content.decode('utf-8'))['totalPages']
 
         filtered_data = []
+
         for page_number in range(1, total_pages + 1):
             response = self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber={page_number}'))
             data = json.loads(response.content.decode('utf-8'))['items']
-            
+
             first_date = dt.strptime((data[0]['transactionDate'].split('T', 1)[0]), "%Y-%m-%d") # Get first date on transactions page
 
             if first_date >= from_date:
                 for transaction in data:
                     transaction_date = dt.strptime(transaction['transactionDate'].split('T', 1)[0], "%Y-%m-%d")
-                    if to_date >= transaction_date >= from_date:
+
+                    if (from_date <= transaction_date) and (to_date >= transaction_date):
                         transaction['transactionDate'] = transaction['transactionDate'].split('T', 1)[0] # Remove the time from the transactionDate
                         transaction['description'] = transaction['description'].replace('\n', '') # Remove the \n from the descriptions
                         transaction['amount'] = transaction['amountCurrency']['amount'] # Split the amountCurrency dictionary
@@ -129,7 +137,7 @@ class ArubaBankAPI:
                         filtered_data.append(transaction)
                     else:
                         continue
-            elif first_date < from_date:
+            else:
                 break
 
 
@@ -150,7 +158,7 @@ class ArubaBankAPI:
             dict["transactionDetailRefId"] = transaction['transactionDetailRefId']
             dict["isRecreatable"] = transaction['isRecreatable']
             reordered_data.append(dict)
-        
+
         return reordered_data
 
 
@@ -159,15 +167,14 @@ class ArubaBankAPI:
         Refresh the session
         """
         response = self.session.get(self.get_url('api/v2/general/refreshsession'))
-        
+
         return response
 
-    
+
     def logout(self):
         """
         Logout the session
         """
         self.session.cookies.clear()
-        
-        pass
 
+        pass
