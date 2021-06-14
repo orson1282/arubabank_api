@@ -26,6 +26,8 @@ def background():
             t_diff = t_new[0:diff]
             # append solely new "rows" of data
             for t in t_diff:
+                # send each transaction to output
+                print(t)
                 # TODO: insert is expensive, maybe change to deque or asc sort?
                 transactions.insert(0, t)
             save_transactions(transactions)
