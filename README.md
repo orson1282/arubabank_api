@@ -32,7 +32,6 @@ Run the following commands to set up a new virtualenv and run the Aruba Bank API
     python3 -m venv venv                             # create a new virtual environment in the directory 'venv'
     . venv/bin/activate                              # activate this environment
     sudo python3 setup.py install                    # install all dependencies
-    python3 -m arubabank -u <username> -p <password> -o json # Use the mobile app to generate your password
 
 
 ## Usage
@@ -59,5 +58,5 @@ This is just a personal project that I decided to share and see what the demand 
 ## To Do List
 
 - Recruit more local developers to the project
-~~- Get transactions based on date range~~
+- ~~Get transactions based on date range~~
 - Get transactions of accounts located in other portfolios
