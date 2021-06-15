@@ -8,6 +8,11 @@ __*It's still in early development*__. At the moment it can login and retrieve t
 <a href="https://www.twitter.com/orson_297" target="_blank"><img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg" alt="orson_297" height="30" width="40"></a>
 
 
+## API
+
+This API was sort of reversed engineered from the Aruba Bank website. It's not an official API so Aruba Bank can change it at any time. It's more of a way to show that it is possible for local Aruban banks to make an API and to show that there is a growing demand for local banks to offer an official API.
+
+
 ## Use Cases
 
 Some of the use cases:
@@ -16,6 +21,18 @@ Some of the use cases:
 - Find a way to facilitate E-Commerce on the island. With an API, bank transfers can be confirmed without user intervention.
 Businesses can then choose to use bank transfers as a payment method on their websites,
 making wide adoption of E-Commerce by the Aruban people much more likely, as credit cards are not widely used.
+
+
+## Getting Started
+
+Run the following commands to set up a new virtualenv and run the Aruba Bank API example:
+
+    git clone https://github.com/orson1282/arubabank_api
+    cd arubabank_api
+    python3 -m venv venv                             # create a new virtual environment in the directory 'venv'
+    . venv/bin/activate                              # activate this environment
+    sudo python3 setup.py install                    # install all dependencies
+    python3 -m arubabank -u <username> -p <password> -o json # Use the mobile app to generate your password
 
 
 ## Usage
@@ -34,28 +51,13 @@ The module with command line arguments is just to show how the api functions, id
 --more examples coming soon--
 
 
-## API
-
-This API was sort of reversed engineered from the Aruba Bank website. It's not an official API so Aruba Bank can change it at any time. It's more of a way to show that it is possible for local Aruban banks to make an API and to show that there is a growing demand for local banks to offer an official API.
-
-## Getting Started
-
-Run the following commands to set up a new virtualenv and run the Aruba Bank API example:
-
-    git clone https://github.com/orson1282/arubabank_api
-    cd arubabank_api
-    python3 -m venv venv                             # create a new virtual environment in the directory 'venv'
-    . venv/bin/activate                              # activate this environment
-    ./setup.py install                               # install all dependencies
-    python3 -m arubabank -u <username> -p <password> -o json # Use the mobile app to generate your password
-
-
 ## Disclaimer
 
 This is just a personal project that I decided to share and see what the demand out there is like. It's purely for educational purposes. I'm not affiliated with Aruba Bank and this project is not sponsored or supported by Aruba Bank. I can only hope that this project is an eye opener for the local banks and they decide to make it possible for local developers / businesses to get access to an official API. If you do use this API please share your experience.
 
+
 ## To Do List
 
 - Recruit more local developers to the project
-- Get transactions based on date range
+~~- Get transactions based on date range~~
 - Get transactions of accounts located in other portfolios
