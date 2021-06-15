@@ -53,11 +53,11 @@ def save_transactions(transactions):
     """
     Save the extracted transactions. We pass a copy of transactions in case it
     ever happens that transactions global gets new data while we are saving.
+    TODO: suppose this app is running for months, what issues will arise?
     """
     global args
     # Write transactions to JSON File
     if args.output == 'json':
-        # TODO: suppose this app is running for months, what issues will arise?
         with open('transactions.json', 'w') as file:
             json.dump(transactions, file, indent = 4)
         file.close()
@@ -125,13 +125,13 @@ def main():
     # TODO: could benefit from logic to handle failed responses
     login = api.login(args.username, args.password)
 
-    transactions = get_transactions()
-    t_diff = transactions
-
-
     if args.mode == '1':
-        # initial save
+        # Cancel todate for active mode
+        args.todate = None
+        # Initial save
+        transactions = get_transactions()
         save_transactions(transactions)
+        t_diff = transactions
         instructions = "Please wait while new transactions are "
         instructions += "being listened to or type 'quit' to terminate.\n"
         print(instructions)
@@ -146,6 +146,7 @@ def main():
                     api.logout()
                 sys.exit()
     else:
+        transactions = get_transactions()
         save_transactions(transactions)
 
 
