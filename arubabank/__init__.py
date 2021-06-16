@@ -92,7 +92,7 @@ class ArubaBankAPI:
         return data
 
 
-    def get_transactions(self, account_id, from_date, to_date):
+    def get_transactions(self, account_id, from_date, to_date, transaction_type=None):
         """
         Returns the transaction details of a specific account between a specific date range
         if to_date is not specified today's date is used
@@ -124,17 +124,23 @@ class ArubaBankAPI:
             if first_date >= from_date:
                 for transaction in data:
                     transaction_date = dt.strptime(transaction['transactionDate'].split('T', 1)[0], "%Y-%m-%d")
-
+                    transaction['transactionDate'] = transaction['transactionDate'].split('T', 1)[0] # Remove the time from the transactionDate
+                    transaction['description'] = transaction['description'].replace('\n', '') # Remove the \n from the descriptions
+                    transaction['amount'] = transaction['amountCurrency']['amount'] # Split the amountCurrency dictionary
+                    transaction['amountCurrencyCode'] = transaction['amountCurrency']['currencyCode'] # Split the amountCurrency dictionary
+                    transaction.pop('amountCurrency', None)
+                    transaction['balance'] = transaction['balanceCurrency']['amount'] # Split the balanceCurrency dictionary
+                    transaction['balanceCurrencyCode'] = transaction['balanceCurrency']['currencyCode'] # Split the balanceCurrency dictionary
+                    transaction.pop('balanceCurrency', None)
                     if (from_date <= transaction_date) and (to_date >= transaction_date):
-                        transaction['transactionDate'] = transaction['transactionDate'].split('T', 1)[0] # Remove the time from the transactionDate
-                        transaction['description'] = transaction['description'].replace('\n', '') # Remove the \n from the descriptions
-                        transaction['amount'] = transaction['amountCurrency']['amount'] # Split the amountCurrency dictionary
-                        transaction['amountCurrencyCode'] = transaction['amountCurrency']['currencyCode'] # Split the amountCurrency dictionary
-                        transaction.pop('amountCurrency', None)
-                        transaction['balance'] = transaction['balanceCurrency']['amount'] # Split the balanceCurrency dictionary
-                        transaction['balanceCurrencyCode'] = transaction['balanceCurrency']['currencyCode'] # Split the balanceCurrency dictionary
-                        transaction.pop('balanceCurrency', None)
-                        filtered_data.append(transaction)
+                        if transaction_type == 'debit':
+                            if transaction['isDebit']:                                
+                                filtered_data.append(transaction)
+                        elif transaction_type == 'credit':
+                            if not transaction['isDebit']:
+                                filtered_data.append(transaction)
+                        else:
+                            filtered_data.append(transaction)
                     else:
                         continue
             else:
