@@ -46,7 +46,9 @@ def get_transactions():
     return api.get_transactions(
         account_id,
         from_date=args.fromdate,
-        to_date=args.todate)
+        to_date=args.todate,
+        transaction_type=args.transaction_type
+        )
 
 
 def save_transactions(transactions):
@@ -110,6 +112,13 @@ def main():
         metavar='',
         type=str,
         help="To Date",
+        required=False)
+    parser.add_argument(
+        "-tt", "--transaction_type",
+        metavar='',
+        type=str,
+        help="The transaction type you wish to get (optional)",
+        choices=['debit', 'credit'],
         required=False)
     parser.add_argument(
         "-m", "--mode",
