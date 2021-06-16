@@ -12,6 +12,7 @@ api = None
 transactions = []
 t_diff = []
 
+
 def background():
     """
     Define what the background running thread must do
@@ -19,7 +20,7 @@ def background():
     """
     global t_diff, transactions
     while True:
-        time.sleep(45) # defines the refresh rate
+        time.sleep(45)  # defines the refresh rate
         t_new = get_transactions()
         diff = len(t_new) - len(transactions)
         if diff > 0:
@@ -47,8 +48,8 @@ def get_transactions():
         account_id,
         from_date=args.fromdate,
         to_date=args.todate,
-        transaction_type=args.transaction_type
-        )
+        transaction_type=args.transaction_type,
+    )
 
 
 def save_transactions(transactions):
@@ -59,14 +60,14 @@ def save_transactions(transactions):
     """
     global args
     # Write transactions to JSON File
-    if args.output == 'json':
-        with open('transactions.json', 'w') as file:
-            json.dump(transactions, file, indent = 4)
+    if args.output == "json":
+        with open("transactions.json", "w") as file:
+            json.dump(transactions, file, indent=4)
         file.close()
     # Write transactions to CSV File
-    if args.output == 'csv':
+    if args.output == "csv":
         keys = transactions[0].keys()
-        with open('transactions.csv', 'w', newline='')  as file:
+        with open("transactions.csv", "w", newline="") as file:
             dict_writer = csv.DictWriter(file, keys)
             dict_writer.writeheader()
             dict_writer.writerows(transactions)
@@ -77,56 +78,52 @@ def main():
     global args, api, transactions, t_diff
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-u", "--username",
-        metavar='',
-        type=str,
-        help="Your username",
-        required=True)
+        "-u", "--username", metavar="", type=str, help="Your username", required=True
+    )
     parser.add_argument(
-        "-p", "--password",
-        metavar='',
-        type=str,
-        help="Your password",
-        required=True)
+        "-p", "--password", metavar="", type=str, help="Your password", required=True
+    )
     parser.add_argument(
-        "-o", "--output",
-        metavar='',
+        "-o",
+        "--output",
+        metavar="",
         type=str,
         help="Set output format (json or csv)",
-        choices=['json', 'csv'],
-        required=True)
+        choices=["json", "csv"],
+        required=True,
+    )
     parser.add_argument(
-        "-b", "--bankaccount",
-        metavar='',
+        "-b",
+        "--bankaccount",
+        metavar="",
         type=str,
         help="Your Bank Account Number (optional)",
-        required=False)
+        required=False,
+    )
     parser.add_argument(
-        "-f", "--fromdate",
-        metavar='',
-        type=str,
-        help="From Date",
-        required=True)
+        "-f", "--fromdate", metavar="", type=str, help="From Date", required=True
+    )
     parser.add_argument(
-        "-t", "--todate",
-        metavar='',
-        type=str,
-        help="To Date",
-        required=False)
+        "-t", "--todate", metavar="", type=str, help="To Date", required=False
+    )
     parser.add_argument(
-        "-tt", "--transaction_type",
-        metavar='',
+        "-tt",
+        "--transaction_type",
+        metavar="",
         type=str,
         help="The transaction type you wish to get (optional)",
-        choices=['debit', 'credit'],
-        required=False)
+        choices=["debit", "credit"],
+        required=False,
+    )
     parser.add_argument(
-        "-m", "--mode",
-        metavar='',
+        "-m",
+        "--mode",
+        metavar="",
         type=str,
         help="Mode can be either 1 'active' (keep-alive) or 0 'passive'",
         required=False,
-        default=0)
+        default=0,
+    )
     args = parser.parse_args()
 
     # Start api and log in
@@ -134,7 +131,7 @@ def main():
     # TODO: could benefit from logic to handle failed responses
     login = api.login(args.username, args.password)
 
-    if args.mode == '1':
+    if args.mode == "1":
         # Cancel todate for active mode
         args.todate = None
         # Initial save
@@ -148,10 +145,10 @@ def main():
         th1.daemon = True
         th1.start()
         while True:
-            if input('') == 'quit':
-                print('Quitting...')
+            if input("") == "quit":
+                print("Quitting...")
                 if api != None:
-                    print('Logging out...')
+                    print("Logging out...")
                     api.logout()
                 sys.exit()
     else:

@@ -8,13 +8,13 @@ from datetime import datetime as dt
 
 
 class ArubaBankAPI:
-    server_url = 'https://onlinebank.arubabank.com/'
-    headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36'}
-
+    server_url = "https://onlinebank.arubabank.com/"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36"
+    }
 
     def __init__(self):
         self.session = requests.Session()
-
 
     def get_url(self, page=None):
         """
@@ -23,8 +23,7 @@ class ArubaBankAPI:
         if page == None:
             return self.server_url
         else:
-            return f'{self.server_url}{page}'
-
+            return f"{self.server_url}{page}"
 
     def login(self, username, password):
         """
@@ -34,38 +33,48 @@ class ArubaBankAPI:
         """
         headers = self.headers
         response = self.session.get(self.get_url())
-        soup = bs(response.content, 'lxml')
+        soup = bs(response.content, "lxml")
         data = str(soup.find(id="my-app-state").contents[0])
-        request_verification_token_start = data.find('value&q;:&q;')+12 # Find the start of the token section
-        request_verification_token_end = data.find('&', request_verification_token_start) # Find the end of the token section
-        request_verification_token = data[request_verification_token_start:request_verification_token_end] # Extract the actual token
+        request_verification_token_start = (
+            data.find("value&q;:&q;") + 12
+        )  # Find the start of the token section
+        request_verification_token_end = data.find(
+            "&", request_verification_token_start
+        )  # Find the end of the token section
+        request_verification_token = data[
+            request_verification_token_start:request_verification_token_end
+        ]  # Extract the actual token
 
         # Add the __RequestVerificationToken to the headers to login
-        headers['__RequestVerificationToken'] = request_verification_token
-        login_payload = {'username':username,'tokentype':'softToken','password':password} # create the login payload.
-        login_response = self.session.post(self.get_url('api/v2/account/login'), headers=headers, data=login_payload)
+        headers["__RequestVerificationToken"] = request_verification_token
+        login_payload = {
+            "username": username,
+            "tokentype": "softToken",
+            "password": password,
+        }  # create the login payload.
+        login_response = self.session.post(
+            self.get_url("api/v2/account/login"), headers=headers, data=login_payload
+        )
         return login_response
-
-
 
     def get_portfolios(self):
         """
         Returns all user portfolios
         """
-        response = self.session.get(self.get_url('api/v2/general/portfolio'))
+        response = self.session.get(self.get_url("api/v2/general/portfolio"))
 
-        data = json.loads(response.content.decode('utf-8'))
+        data = json.loads(response.content.decode("utf-8"))
         return data
-
 
     def get_account_overview(self):
         """
         Returns the accounts of the selected portfolio
         """
-        response = self.session.get(self.get_url('api/v2/JSSTBAccounts/getaccountoverview'))
-        data = json.loads(response.content.decode('utf-8'))
+        response = self.session.get(
+            self.get_url("api/v2/JSSTBAccounts/getaccountoverview")
+        )
+        data = json.loads(response.content.decode("utf-8"))
         return data
-
 
     def get_account_id(self, bank_account_number=None):
         """
@@ -74,23 +83,25 @@ class ArubaBankAPI:
         returns the first account_number from the default portfolio
         """
         if not bank_account_number:
-            account_number = self.get_transaction_accounts()[0]['accountNumber'] # selects the first account from the default portfolio
+            account_number = self.get_transaction_accounts()[0][
+                "accountNumber"
+            ]  # selects the first account from the default portfolio
         else:
-            for account in self.get_account_overview()['portfolios'][0]['products']:
-                if account['accountNumber'] == bank_account_number: # selects the account_number that matches the account argument
-                    account_number = account['accountId']
+            for account in self.get_account_overview()["portfolios"][0]["products"]:
+                if (
+                    account["accountNumber"] == bank_account_number
+                ):  # selects the account_number that matches the account argument
+                    account_number = account["accountId"]
         return account_number
-
 
     def get_transaction_accounts(self):
         """
         Returns all transaction accounts of the selected portfolio
         """
-        response = self.session.get(self.get_url('api/v2/transactionaccount/get'))
+        response = self.session.get(self.get_url("api/v2/transactionaccount/get"))
 
-        data = json.loads(response.content.decode('utf-8'))
+        data = json.loads(response.content.decode("utf-8"))
         return data
-
 
     def get_transactions(self, account_id, from_date, to_date, transaction_type=None):
         """
@@ -108,36 +119,64 @@ class ArubaBankAPI:
             to_date = dt.utcnow()
 
         # Get total pages of all transactions
-        url = self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber=1')
+        url = self.get_url(
+            f"api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber=1"
+        )
         # https://stackoverflow.com/a/53899577/861597
-        now = {'Cache-Control': 'no-cache'}
-        total_pages = json.loads(self.session.get(url, headers=now).content.decode('utf-8'))['totalPages']
+        now = {"Cache-Control": "no-cache"}
+        total_pages = json.loads(
+            self.session.get(url, headers=now).content.decode("utf-8")
+        )["totalPages"]
 
         filtered_data = []
 
         for page_number in range(1, total_pages + 1):
-            response = self.session.get(self.get_url(f'api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber={page_number}'))
-            data = json.loads(response.content.decode('utf-8'))['items']
+            response = self.session.get(
+                self.get_url(
+                    f"api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber={page_number}"
+                )
+            )
+            data = json.loads(response.content.decode("utf-8"))["items"]
 
-            first_date = dt.strptime((data[0]['transactionDate'].split('T', 1)[0]), "%Y-%m-%d") # Get first date on transactions page
+            first_date = dt.strptime(
+                (data[0]["transactionDate"].split("T", 1)[0]), "%Y-%m-%d"
+            )  # Get first date on transactions page
 
             if first_date >= from_date:
                 for transaction in data:
-                    transaction_date = dt.strptime(transaction['transactionDate'].split('T', 1)[0], "%Y-%m-%d")
-                    transaction['transactionDate'] = transaction['transactionDate'].split('T', 1)[0] # Remove the time from the transactionDate
-                    transaction['description'] = transaction['description'].replace('\n', '') # Remove the \n from the descriptions
-                    transaction['amount'] = transaction['amountCurrency']['amount'] # Split the amountCurrency dictionary
-                    transaction['amountCurrencyCode'] = transaction['amountCurrency']['currencyCode'] # Split the amountCurrency dictionary
-                    transaction.pop('amountCurrency', None)
-                    transaction['balance'] = transaction['balanceCurrency']['amount'] # Split the balanceCurrency dictionary
-                    transaction['balanceCurrencyCode'] = transaction['balanceCurrency']['currencyCode'] # Split the balanceCurrency dictionary
-                    transaction.pop('balanceCurrency', None)
-                    if (from_date <= transaction_date) and (to_date >= transaction_date):
-                        if transaction_type == 'debit':
-                            if transaction['isDebit']:                                
+                    transaction_date = dt.strptime(
+                        transaction["transactionDate"].split("T", 1)[0], "%Y-%m-%d"
+                    )
+                    transaction["transactionDate"] = transaction[
+                        "transactionDate"
+                    ].split("T", 1)[
+                        0
+                    ]  # Remove the time from the transactionDate
+                    transaction["description"] = transaction["description"].replace(
+                        "\n", ""
+                    )  # Remove the \n from the descriptions
+                    transaction["amount"] = transaction["amountCurrency"][
+                        "amount"
+                    ]  # Split the amountCurrency dictionary
+                    transaction["amountCurrencyCode"] = transaction["amountCurrency"][
+                        "currencyCode"
+                    ]  # Split the amountCurrency dictionary
+                    transaction.pop("amountCurrency", None)
+                    transaction["balance"] = transaction["balanceCurrency"][
+                        "amount"
+                    ]  # Split the balanceCurrency dictionary
+                    transaction["balanceCurrencyCode"] = transaction["balanceCurrency"][
+                        "currencyCode"
+                    ]  # Split the balanceCurrency dictionary
+                    transaction.pop("balanceCurrency", None)
+                    if (from_date <= transaction_date) and (
+                        to_date >= transaction_date
+                    ):
+                        if transaction_type == "debit":
+                            if transaction["isDebit"]:
                                 filtered_data.append(transaction)
-                        elif transaction_type == 'credit':
-                            if not transaction['isDebit']:
+                        elif transaction_type == "credit":
+                            if not transaction["isDebit"]:
                                 filtered_data.append(transaction)
                         else:
                             filtered_data.append(transaction)
@@ -146,36 +185,33 @@ class ArubaBankAPI:
             else:
                 break
 
-
         reordered_data = []
         for transaction in filtered_data:
             dict = {}
-            dict["transactionDate"] = transaction['transactionDate']
-            dict["transactionCode"] = transaction['transactionCode']
-            dict["description"] = transaction['description']
-            dict["amount"] = transaction['amount']
-            dict["amountCurrencyCode"] = transaction['amountCurrencyCode']
-            dict["balance"] = transaction['balance']
-            dict["balanceCurrencyCode"] = transaction['balanceCurrencyCode']
-            dict["isDebit"] = transaction['isDebit']
-            dict["beneficiaryName"] = transaction['beneficiaryName']
-            dict["referenceNumber"] = transaction['referenceNumber']
-            dict["bankMateReferenceNumber"] = transaction['bankMateReferenceNumber']
-            dict["transactionDetailRefId"] = transaction['transactionDetailRefId']
-            dict["isRecreatable"] = transaction['isRecreatable']
+            dict["transactionDate"] = transaction["transactionDate"]
+            dict["transactionCode"] = transaction["transactionCode"]
+            dict["description"] = transaction["description"]
+            dict["amount"] = transaction["amount"]
+            dict["amountCurrencyCode"] = transaction["amountCurrencyCode"]
+            dict["balance"] = transaction["balance"]
+            dict["balanceCurrencyCode"] = transaction["balanceCurrencyCode"]
+            dict["isDebit"] = transaction["isDebit"]
+            dict["beneficiaryName"] = transaction["beneficiaryName"]
+            dict["referenceNumber"] = transaction["referenceNumber"]
+            dict["bankMateReferenceNumber"] = transaction["bankMateReferenceNumber"]
+            dict["transactionDetailRefId"] = transaction["transactionDetailRefId"]
+            dict["isRecreatable"] = transaction["isRecreatable"]
             reordered_data.append(dict)
 
         return reordered_data
-
 
     def refresh_session(self):
         """
         Refresh the session
         """
-        response = self.session.get(self.get_url('api/v2/general/refreshsession'))
+        response = self.session.get(self.get_url("api/v2/general/refreshsession"))
 
         return response
-
 
     def logout(self):
         """
