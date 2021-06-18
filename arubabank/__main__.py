@@ -39,7 +39,6 @@ def get_transactions():
     Encapsulator for the fetching of new data.
     """
     global args, api
-    # Probe session (maybe we should implement logic for response...)
     response = api.refresh_session()
     # Returns the account_id used for api endpoints based on bank account number
     account_id = api.get_account_id(args.bankaccount)
@@ -128,7 +127,6 @@ def main():
 
     # Start api and log in
     api = ArubaBankAPI()
-    # TODO: could benefit from logic to handle failed responses
     login = api.login(args.username, args.password)
 
     if args.mode == "1":
