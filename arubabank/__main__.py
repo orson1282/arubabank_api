@@ -7,7 +7,6 @@ import time
 import sys
 
 # globals
-args = None
 api = None
 transactions = []
 t_diff = []
@@ -34,11 +33,11 @@ def background():
             save_transactions(transactions)
 
 
-def get_transactions():
+def get_transactions(args):
     """
     Encapsulator for the fetching of new data.
     """
-    global args, api
+    global api
     response = api.refresh_session()
     # Returns the account_id used for api endpoints based on bank account number
     account_id = api.get_account_id(args.bankaccount)
@@ -51,13 +50,12 @@ def get_transactions():
     )
 
 
-def save_transactions(transactions):
+def save_transactions(transactions, args):
     """
     Save the extracted transactions. We pass a copy of transactions in case it
     ever happens that transactions global gets new data while we are saving.
     TODO: suppose this app is running for months, what issues will arise?
     """
-    global args
     # Write transactions to JSON File
     if args.output == "json":
         with open("transactions.json", "w") as file:
@@ -73,8 +71,7 @@ def save_transactions(transactions):
         file.close()
 
 
-def main():
-    global args, api, transactions, t_diff
+def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-u", "--username", metavar="", type=str, help="Your username", required=True
@@ -123,7 +120,13 @@ def main():
         required=False,
         default=0,
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    global api, transactions, t_diff
+    
+    args = parse_arguments()
 
     # Start api and log in
     api = ArubaBankAPI()
@@ -150,8 +153,8 @@ def main():
                     api.logout()
                 sys.exit()
     else:
-        transactions = get_transactions()
-        save_transactions(transactions)
+        transactions = get_transactions(args)
+        save_transactions(transactions, args)
 
 
 if __name__ == "__main__":
