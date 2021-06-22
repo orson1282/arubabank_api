@@ -7,12 +7,11 @@ import time
 import sys
 
 # globals
-api = None
 transactions = []
 t_diff = []
 
 
-def background():
+def background(args, api):
     """
     Define what the background running thread must do
     https://stackoverflow.com/a/31768999/861597 .
@@ -20,7 +19,7 @@ def background():
     global t_diff, transactions
     while True:
         time.sleep(45)  # defines the refresh rate
-        t_new = get_transactions()
+        t_new = get_transactions(args, api)
         diff = len(t_new) - len(transactions)
         if diff > 0:
             t_diff = t_new[0:diff]
@@ -30,15 +29,14 @@ def background():
                 print(t)
                 # TODO: insert is expensive, maybe change to deque or asc sort?
                 transactions.insert(0, t)
-            save_transactions(transactions)
+            return save_transactions(transactions, args)
 
 
-def get_transactions(args):
+def get_transactions(args, api):
     """
     Encapsulator for the fetching of new data.
     """
-    global api
-    response = api.refresh_session()
+    api.refresh_session()
     # Returns the account_id used for api endpoints based on bank account number
     account_id = api.get_account_id(args.bankaccount)
     # Returns the transactions in a clean format for json or csv processing
@@ -124,25 +122,25 @@ def parse_arguments():
 
 
 def main():
-    global api, transactions, t_diff
+    global transactions, t_diff
     
     args = parse_arguments()
 
     # Start api and log in
     api = ArubaBankAPI()
-    login = api.login(args.username, args.password)
+    api.login(args.username, args.password)
 
     if args.mode == "1":
         # Cancel todate for active mode
         args.todate = None
         # Initial save
-        transactions = get_transactions()
-        save_transactions(transactions)
+        transactions = get_transactions(args, api)
+        save_transactions(transactions, args)
         t_diff = transactions
         instructions = "Please wait while new transactions are "
         instructions += "being listened to or type 'quit' to terminate.\n"
         print(instructions)
-        th1 = threading.Thread(target=background)
+        th1 = threading.Thread(target=background, args=(args,api))
         th1.daemon = True
         th1.start()
         while True:
@@ -153,7 +151,7 @@ def main():
                     api.logout()
                 sys.exit()
     else:
-        transactions = get_transactions(args)
+        transactions = get_transactions(args, api)
         save_transactions(transactions, args)
 
 
