@@ -6,17 +6,12 @@ import threading
 import time
 import sys
 
-# globals
-transactions = []
-t_diff = []
 
-
-def background(args, api):
+def background(args, api, transactions, t_diff):
     """
     Define what the background running thread must do
     https://stackoverflow.com/a/31768999/861597 .
     """
-    global t_diff, transactions
     while True:
         time.sleep(45)  # defines the refresh rate
         t_new = get_transactions(args, api)
@@ -122,10 +117,7 @@ def parse_arguments():
 
 
 def main():
-    global transactions, t_diff
-    
     args = parse_arguments()
-
     # Start api and log in
     api = ArubaBankAPI()
     api.login(args.username, args.password)
@@ -140,7 +132,9 @@ def main():
         instructions = "Please wait while new transactions are "
         instructions += "being listened to or type 'quit' to terminate.\n"
         print(instructions)
-        th1 = threading.Thread(target=background, args=(args,api))
+        th1 = threading.Thread(
+            target=background, args=(args, api, transactions, t_diff)
+        )
         th1.daemon = True
         th1.start()
         while True:
