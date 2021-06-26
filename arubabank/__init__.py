@@ -32,7 +32,6 @@ class ArubaBankAPI:
         Gets the __RequestVerificationToken from the main website with BeautifulSoup
         and adds it to the the headers. Maybe this can be improved.
         """
-        headers = self.headers
         try:
             response = self.session.get(self.get_url())
             response.raise_for_status()
@@ -42,6 +41,7 @@ class ArubaBankAPI:
         except requests.exceptions.HTTPError as e:
             print(f"Error: {e}")
             sys.exit()
+
         soup = bs(response.content, "lxml")
         data = str(soup.find(id="my-app-state").contents[0])
         request_verification_token_start = (
@@ -55,7 +55,9 @@ class ArubaBankAPI:
         ]  # Extract the actual token
 
         # Add the __RequestVerificationToken to the headers to login
-        headers["__RequestVerificationToken"] = request_verification_token
+        self.headers.update(
+            {"__RequestVerificationToken": request_verification_token}
+        )
         login_payload = {
             "username": username,
             "tokentype": "softToken",
@@ -63,7 +65,9 @@ class ArubaBankAPI:
         }  # create the login payload.
         try:
             login_response = self.session.post(
-                self.get_url("api/v2/account/login"), headers=headers, data=login_payload
+                self.get_url("api/v2/account/login"),
+                headers=self.headers,
+                data=login_payload
             )
             login_response.raise_for_status()
         except requests.exceptions.ConnectionError as e:
@@ -74,9 +78,9 @@ class ArubaBankAPI:
             sys.exit()
         return login_response
 
-    def get_portfolios(self):
+    def get_portfolio_ids(self):
         """
-        Returns all user portfolios
+        Returns all user portfolio IDs
         """
         try:
             response = self.session.get(self.get_url("api/v2/general/portfolio"))
@@ -88,7 +92,11 @@ class ArubaBankAPI:
             print(f"Error: {e}")
             sys.exit()
         data = json.loads(response.content.decode("utf-8"))
-        return data
+        # extract portfolio IDs
+        ids = []
+        for p in data['portfolios']:
+            ids.append(p['id'])
+        return ids
 
     def get_account_overview(self):
         """
