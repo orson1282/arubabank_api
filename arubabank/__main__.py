@@ -6,22 +6,16 @@ import threading
 import time
 import sys
 
-# globals
-args = None
-api = None
-transactions = []
-t_diff = []
 
-
-def background():
+def background(args, api, transactions, t_diff):
     """
     Define what the background running thread must do
     https://stackoverflow.com/a/31768999/861597 .
     """
-    global t_diff, transactions
     while True:
-        time.sleep(45)  # defines the refresh rate
-        t_new = get_transactions()
+        # time between reconnects to keep the session connected
+        time.sleep(120)
+        t_new = get_transactions(args, api)
         diff = len(t_new) - len(transactions)
         if diff > 0:
             t_diff = t_new[0:diff]
@@ -31,16 +25,14 @@ def background():
                 print(t)
                 # TODO: insert is expensive, maybe change to deque or asc sort?
                 transactions.insert(0, t)
-            save_transactions(transactions)
+            return save_transactions(transactions, args)
 
 
-def get_transactions():
+def get_transactions(args, api):
     """
     Encapsulator for the fetching of new data.
     """
-    global args, api
-    # Probe session (maybe we should implement logic for response...)
-    response = api.refresh_session()
+    api.refresh_session()
     # Returns the account_id used for api endpoints based on bank account number
     account_id = api.get_account_id(args.bankaccount)
     # Returns the transactions in a clean format for json or csv processing
@@ -52,13 +44,12 @@ def get_transactions():
     )
 
 
-def save_transactions(transactions):
+def save_transactions(transactions, args):
     """
     Save the extracted transactions. We pass a copy of transactions in case it
     ever happens that transactions global gets new data while we are saving.
     TODO: suppose this app is running for months, what issues will arise?
     """
-    global args
     # Write transactions to JSON File
     if args.output == "json":
         with open("transactions.json", "w") as file:
@@ -74,8 +65,7 @@ def save_transactions(transactions):
         file.close()
 
 
-def main():
-    global args, api, transactions, t_diff
+def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-u", "--username", metavar="", type=str, help="Your username", required=True
@@ -124,24 +114,28 @@ def main():
         required=False,
         default=0,
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+def main():
+    args = parse_arguments()
     # Start api and log in
     api = ArubaBankAPI()
-    # TODO: could benefit from logic to handle failed responses
-    login = api.login(args.username, args.password)
+    api.login(args.username, args.password)
 
     if args.mode == "1":
         # Cancel todate for active mode
         args.todate = None
         # Initial save
-        transactions = get_transactions()
-        save_transactions(transactions)
+        transactions = get_transactions(args, api)
+        save_transactions(transactions, args)
         t_diff = transactions
         instructions = "Please wait while new transactions are "
         instructions += "being listened to or type 'quit' to terminate.\n"
         print(instructions)
-        th1 = threading.Thread(target=background)
+        th1 = threading.Thread(
+            target=background, args=(args, api, transactions, t_diff)
+        )
         th1.daemon = True
         th1.start()
         while True:
@@ -152,8 +146,8 @@ def main():
                     api.logout()
                 sys.exit()
     else:
-        transactions = get_transactions()
-        save_transactions(transactions)
+        transactions = get_transactions(args, api)
+        save_transactions(transactions, args)
 
 
 if __name__ == "__main__":

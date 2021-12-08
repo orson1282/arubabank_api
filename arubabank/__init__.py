@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 import json
 from datetime import datetime as dt
+import sys
 
 
 class ArubaBankAPI:
@@ -31,8 +32,16 @@ class ArubaBankAPI:
         Gets the __RequestVerificationToken from the main website with BeautifulSoup
         and adds it to the the headers. Maybe this can be improved.
         """
-        headers = self.headers
-        response = self.session.get(self.get_url())
+        try:
+            response = self.session.get(self.get_url())
+            response.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            print(f"Error: {e}")
+            sys.exit()
+        except requests.exceptions.HTTPError as e:
+            print(f"Error: {e}")
+            sys.exit()
+
         soup = bs(response.content, "lxml")
         data = str(soup.find(id="my-app-state").contents[0])
         request_verification_token_start = (
@@ -46,33 +55,70 @@ class ArubaBankAPI:
         ]  # Extract the actual token
 
         # Add the __RequestVerificationToken to the headers to login
-        headers["__RequestVerificationToken"] = request_verification_token
+        self.headers.update(
+            {"__RequestVerificationToken": request_verification_token}
+        )
         login_payload = {
             "username": username,
             "tokentype": "softToken",
             "password": password,
         }  # create the login payload.
-        login_response = self.session.post(
-            self.get_url("api/v2/account/login"), headers=headers, data=login_payload
-        )
+        try:
+            login_response = self.session.post(
+                self.get_url("api/v2/account/login"),
+                headers=self.headers,
+                data=login_payload
+            )
+            login_response.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            print(f"Error: {e}")
+            sys.exit()
+        except requests.exceptions.HTTPError as e:
+            print(f"Error: {e}")
+            sys.exit()
         return login_response
 
     def get_portfolios(self):
         """
         Returns all user portfolios
         """
-        response = self.session.get(self.get_url("api/v2/general/portfolio"))
-
+        try:
+            response = self.session.get(self.get_url("api/v2/general/portfolio"))
+            response.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            print(f"Error: {e}")
+            sys.exit()
+        except requests.exceptions.HTTPError as e:
+            print(f"Error: {e}")
+            sys.exit()
         data = json.loads(response.content.decode("utf-8"))
         return data
+
+    def get_portfolio_ids(self):
+        """
+        Returns all user portfolio IDs
+        """
+        data = self.get_portfolios()
+        ids = []
+        for p in data['portfolios']:
+            ids.append(p['id'])
+        return ids
 
     def get_account_overview(self):
         """
         Returns the accounts of the selected portfolio
         """
-        response = self.session.get(
-            self.get_url("api/v2/JSSTBAccounts/getaccountoverview")
-        )
+        try:
+            response = self.session.get(
+                self.get_url("api/v2/JSSTBAccounts/getaccountoverview")
+            )
+            response.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            print(f"Error: {e}")
+            sys.exit()
+        except requests.exceptions.HTTPError as e:
+            print(f"Error: {e}")
+            sys.exit()
         data = json.loads(response.content.decode("utf-8"))
         return data
 
@@ -98,8 +144,15 @@ class ArubaBankAPI:
         """
         Returns all transaction accounts of the selected portfolio
         """
-        response = self.session.get(self.get_url("api/v2/transactionaccount/get"))
-
+        try:
+            response = self.session.get(self.get_url("api/v2/transactionaccount/get"))
+            response.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            print(f"Error: {e}")
+            sys.exit()
+        except requests.exceptions.HTTPError as e:
+            print(f"Error: {e}")
+            sys.exit()
         data = json.loads(response.content.decode("utf-8"))
         return data
 
@@ -124,18 +177,33 @@ class ArubaBankAPI:
         )
         # https://stackoverflow.com/a/53899577/861597
         now = {"Cache-Control": "no-cache"}
-        total_pages = json.loads(
-            self.session.get(url, headers=now).content.decode("utf-8")
-        )["totalPages"]
+        try:
+            total_pages = self.session.get(url, headers=now)
+            total_pages.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            print(f"Error: {e}")
+            sys.exit()
+        except requests.exceptions.HTTPError as e:
+            print(f"Error: {e}")
+            sys.exit()
+        total_pages = json.loads(total_pages.content.decode("utf-8"))["totalPages"]
 
         filtered_data = []
 
         for page_number in range(1, total_pages + 1):
-            response = self.session.get(
-                self.get_url(
-                    f"api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber={page_number}"
+            try:
+                response = self.session.get(
+                    self.get_url(
+                        f"api/v2/transactionoverview/get?accountNumber={account_id}&pageNumber={page_number}"
+                    )
                 )
-            )
+                response.raise_for_status()
+            except requests.exceptions.ConnectionError as e:
+                print(f"Error: {e}")
+                sys.exit()
+            except requests.exceptions.HTTPError as e:
+                print(f"Error: {e}")
+                sys.exit()
             data = json.loads(response.content.decode("utf-8"))["items"]
 
             first_date = dt.strptime(
@@ -209,8 +277,15 @@ class ArubaBankAPI:
         """
         Refresh the session
         """
-        response = self.session.get(self.get_url("api/v2/general/refreshsession"))
-
+        try:
+            response = self.session.get(self.get_url("api/v2/general/refreshsession"))
+            response.raise_for_status()
+        except requests.exceptions.ConnectionError as e:
+            print(f"Error: {e}")
+            sys.exit()
+        except requests.exceptions.HTTPError as e:
+            print(f"Error: {e}")
+            sys.exit()
         return response
 
     def logout(self):
