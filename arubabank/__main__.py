@@ -13,7 +13,8 @@ def background(args, api, transactions, t_diff):
     https://stackoverflow.com/a/31768999/861597 .
     """
     while True:
-        time.sleep(45)  # defines the refresh rate
+        # time between reconnects to keep the session connected
+        time.sleep(120)
         t_new = get_transactions(args, api)
         diff = len(t_new) - len(transactions)
         if diff > 0:
