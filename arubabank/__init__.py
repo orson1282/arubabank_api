@@ -78,9 +78,9 @@ class ArubaBankAPI:
             sys.exit()
         return login_response
 
-    def get_portfolio_ids(self):
+    def get_portfolios(self):
         """
-        Returns all user portfolio IDs
+        Returns all user portfolios
         """
         try:
             response = self.session.get(self.get_url("api/v2/general/portfolio"))
@@ -92,7 +92,13 @@ class ArubaBankAPI:
             print(f"Error: {e}")
             sys.exit()
         data = json.loads(response.content.decode("utf-8"))
-        # extract portfolio IDs
+        return data
+
+    def get_portfolio_ids(self):
+        """
+        Returns all user portfolio IDs
+        """
+        data = self.get_portfolios()
         ids = []
         for p in data['portfolios']:
             ids.append(p['id'])
