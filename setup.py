@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
     LONG_DESCRIPTION = fh.read()
 
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 PACKAGE_NAME = "arubabankapi"
 AUTHOR = "Orson Oehlers"
 AUTHOR_EMAIL = "orson@oehlers.net"

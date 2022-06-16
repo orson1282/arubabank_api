@@ -207,13 +207,13 @@ class ArubaBankAPI:
             data = json.loads(response.content.decode("utf-8"))["items"]
 
             first_date = dt.strptime(
-                (data[0]["transactionDate"].split("T", 1)[0]), "%Y-%m-%d"
+                (data[0]["transactionDate"].split("T", 1)[0]), "%m/%d/%Y"
             )  # Get first date on transactions page
 
             if first_date >= from_date:
                 for transaction in data:
                     transaction_date = dt.strptime(
-                        transaction["transactionDate"].split("T", 1)[0], "%Y-%m-%d"
+                        transaction["transactionDate"].split("T", 1)[0], "%m/%d/%Y"
                     )
                     transaction["transactionDate"] = transaction[
                         "transactionDate"
