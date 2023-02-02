@@ -16,21 +16,32 @@ Some of the use cases:
 
 ## Getting Started
 
-Run the following commands to set up a new virtualenv and run the Aruba Bank API in Linux:
+Make sure you have Python installed, if not, install it first then run the following commands (Linux/Windows) to set up a new virtualenv for the Aruba Bank API.
+Depending on your OS and Python installation, to run python commands you may have to issue the command "python" or "python3".
 
-```bash
-# Clone the git repo
+**1. Clone the git repo**
+```
 git clone https://github.com/orson1282/arubabank_api
-# CD into the repo
+```
+**2. CD into the repo**
+```
 cd arubabank_api
-# Create a virtual environment
+```
+**3. Create a virtual environment**
+```
 python3 -m venv venv
-# Activate the virtual environment
+```
+**4. Activate the virtual environment**
+```bash
+# Command for Linux
 source venv/bin/activate
-# Install the dependencies
+# Command for Windows
+venv\Scripts\activate
+```
+**5. Install the dependencies**
+```bash
 sudo python3 setup.py install
 ```
-
 
 ## Usage
 
@@ -38,7 +49,7 @@ Every time you run this script you'll need to generate a new password with the *
 
 ```bash
 # retreive all transactions between May 1 and May 31 from bank account number 9876540190
-# from the default portfolio
+# note: script can only fetch data from the default portfolio
 python3 -m arubabank -u jcroes -p 123456 -o csv -b 9876540190 -f 2021-05-01 -t 2021-05-31
 ```
 
